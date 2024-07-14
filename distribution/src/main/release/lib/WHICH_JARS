@@ -73,6 +73,10 @@ For standalone HTTP support use Jetty:
 For Aegis support:
 - cxf-rt-databinding-aegis.jar
 
+For XmlBeans databinding support:
+- xmlbeans.jar
+- cxf-rt-databinding-xmlbeans.jar
+
 For WS-Security support:
 - wss4j-*.jar
 - xmlsec.jar
