@@ -31,7 +31,7 @@
     </parent>
     <modules>
         <module>jaxb</module>
-        <module>aegis</module>
         <module>xmlbeans</module>
+        <module>aegis</module>
     </modules>
 </project>
