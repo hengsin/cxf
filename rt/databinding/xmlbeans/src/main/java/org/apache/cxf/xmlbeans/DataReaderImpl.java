@@ -94,26 +94,25 @@ public class DataReaderImpl implements DataReader<XMLStreamReader> {
             typeClass = encClass;
             isOutClass = true;
         }
-        Class<?> cls[] = typeClass.getDeclaredClasses();
+        
         Object obj = null;
-        for (Class<?> c : cls) {
-            if ("Factory".equals(c.getSimpleName())) {
-                try {
-                    XmlOptions options = new XmlOptions();
-                    if (validate) {
-                        options.setValidateOnSet();
-                    }
-                    if (st != null && !st.isDocumentType() && !isOutClass) {
-                        options.setLoadReplaceDocumentElement(null);
-                    }
-                    Method meth = c.getMethod("parse", XMLStreamReader.class, XmlOptions.class);
-                    obj = meth.invoke(null, reader, options);                    
-                    break;
-                } catch (Exception e) {
-                    throw new Fault(new Message("UNMARSHAL_ERROR", LOG, partTypeClass, e));
-                }
-            }
-        }
+		try {
+			Field factory = typeClass.getDeclaredField("Factory");
+			if (factory != null) {
+				XmlOptions options = new XmlOptions();
+				if (validate) {
+					options.setValidateOnSet();
+				}
+				if (st != null && !st.isDocumentType() && !isOutClass) {
+					options.setLoadReplaceDocumentElement(null);
+				}
+				Method meth = factory.getType().getMethod("parse", XMLStreamReader.class, XmlOptions.class);
+				obj = meth.invoke(factory.get(typeClass), reader, options);                    
+			}
+		} catch (Exception e) {
+			throw new Fault(new Message("UNMARSHAL_ERROR", LOG, partTypeClass, e));
+		}
+        
         if (unwrap && obj != null) {
             try {
                 Class<?> tc = partTypeClass; 

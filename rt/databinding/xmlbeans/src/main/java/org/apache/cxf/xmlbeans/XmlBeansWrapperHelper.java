@@ -35,7 +35,6 @@ public class XmlBeansWrapperHelper extends AbstractWrapperHelper {
 
     @Override
     protected Object createWrapperObject(Class<?> typeClass) throws Exception {
-        Class<?> cls[] = typeClass.getDeclaredClasses();
         Method newType = null;
         for (Method method : typeClass.getMethods()) {
             if (method.getName().startsWith("addNew")) {
@@ -44,25 +43,23 @@ public class XmlBeansWrapperHelper extends AbstractWrapperHelper {
             }
         }                     
         Object obj = null;
-        for (Class<?> c : cls) {                        
-            if ("Factory".equals(c.getSimpleName())) {
-                if (validate) {
-                    // set the validation option here
-                    Method method = c.getMethod("newInstance", XmlOptions.class); 
-                    XmlOptions options = new XmlOptions();                    
-                    options.setValidateOnSet();                    
-                    obj = method.invoke(null, options);
-                } else {
-                    Method method = c.getMethod("newInstance", NO_CLASSES);
-                    obj = method.invoke(null, NO_PARAMS);                    
-                }
-                if (newType != null) {
-                    // create the value object
-                    obj = newType.invoke(obj, NO_PARAMS);
-                }
-                break;
-            }
-        }
+        Field factory = typeClass.getDeclaredField("Factory");
+		if (factory != null) {
+			if (validate) {
+				// set the validation option here
+				Method method = factory.getType().getMethod("newInstance", XmlOptions.class); 
+				XmlOptions options = new XmlOptions();                    
+				options.setValidateOnSet();                    
+				obj = method.invoke(factory.get(typeClass), options);
+			} else {
+				Method method = factory.getType().getMethod("newInstance", NO_CLASSES);
+				obj = method.invoke(factory.get(typeClass), NO_PARAMS);                    
+			}
+			if (newType != null) {
+				// create the value object
+				obj = newType.invoke(obj, NO_PARAMS);
+			}
+		}
         
         return obj;
     }

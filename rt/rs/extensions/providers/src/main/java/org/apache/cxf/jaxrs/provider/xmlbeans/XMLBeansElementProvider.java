@@ -24,6 +24,7 @@ import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.Reader;
 import java.lang.annotation.Annotation;
+import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Type;
@@ -96,17 +97,17 @@ public class XMLBeansElementProvider extends AbstractConfigurableProvider
 
         XmlObject result = null;
 
-        // get XMLBeans inner class Factory
-        Class<?> factory = getFactory(type);
+        // get static XMLBeans Factory field
+        Field factory = getFactory(type);
 
         try {
 
             // find and invoke method parse(InputStream)
-            Method m = factory.getMethod("parse", reader.getClass());
+            Method m = factory.getType().getMethod("parse", reader.getClass());
             Object[] args = {
                 reader
             };
-            Object obj = m.invoke(type, args);
+            Object obj = m.invoke(factory.get(type), args);
 
             if (obj instanceof XmlObject) {
                 result = (XmlObject)obj;
@@ -151,14 +152,12 @@ public class XMLBeansElementProvider extends AbstractConfigurableProvider
     protected XmlObject parseXmlBean(Class<?> type, Reader reader) {
         XmlObject result = null;
 
-        Class<?> factory = getFactory(type);
-
         try {
-
+			Field factory = getFactory(type);
             // get factory method parse(InputStream)
-            Method m = factory.getMethod("parse", Reader.class);
+            Method m = factory.getType().getMethod("parse", Reader.class);
             Object[] args = {reader};
-            Object obj = m.invoke(type, args);
+            Object obj = m.invoke(factory.get(type), args);
 
             if (obj instanceof XmlObject) {
                 result = (XmlObject)obj;
@@ -176,30 +175,22 @@ public class XMLBeansElementProvider extends AbstractConfigurableProvider
     }
 
     /**
-     * Locate the XMLBean <code>Factory</code> inner class.
+     * Locate the static XMLBean <code>Factory</code> field.
      * 
      * @param type
-     * @return the Factory class if present, otherwise null.
+     * @return the Factory field if present, otherwise null.
      */
-    private Class<?> getFactory(Class<?> type) {
-        Class<?> result = null;
-
-        Class<?>[] interfaces = type.getInterfaces();
-
-        // look for XMLBeans inner class Factory
-        for (Class<?> inter : interfaces) {
-
-            Class<?>[] declared = inter.getDeclaredClasses();
-
-            for (Class<?> c : declared) {
-
-                if (c.getSimpleName().equals("Factory")) {
-                    result = c;
-                }
-            }
-        }
-
-        return result;
+    private Field getFactory(Class<?> type) {
+        Field factory = null;
+        try {
+        	factory = type.getDeclaredField("Factory");
+		} catch (NoSuchFieldException e) {
+			e.printStackTrace();
+		} catch (SecurityException e) {
+			e.printStackTrace();
+		}
+        
+        return factory;
     }
 
     /**

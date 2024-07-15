@@ -77,26 +77,23 @@ public class DataWriterImpl implements DataWriter<XMLStreamWriter> {
             if (!XmlObject.class.isAssignableFrom(typeClass) && part != null) {
                 typeClass = (Class<?>)part.getProperty(XmlAnySimpleType.class.getName());
                 
-                Class<?> cls[] = typeClass.getDeclaredClasses();
-                for (Class<?> c : cls) {
-                    if ("Factory".equals(c.getSimpleName())) {
-                        try {
-                            SchemaType st = (SchemaType)part.getProperty(SchemaType.class.getName());
-                            XmlOptions options = new XmlOptions();
-                            if (schema != null) {
-                                options.setValidateOnSet();
-                            }
-                            if (!st.isDocumentType()) {
-                                options.setLoadReplaceDocumentElement(null);
-                            }
-                            Method meth = c.getMethod("newValue", Object.class);
-                            obj = meth.invoke(null, obj);
-                            break;
-                        } catch (Exception e) {
-                            throw new Fault("UNMARSHAL_ERROR", LOG, e, part.getTypeClass());
-                        }
-                    }
-                }
+				try {
+					Field factory = typeClass.getDeclaredField("Factory");
+					if (factory != null) {
+						SchemaType st = (SchemaType)part.getProperty(SchemaType.class.getName());
+						XmlOptions options = new XmlOptions();
+						if (schema != null) {
+							options.setValidateOnSet();
+						}
+						if (!st.isDocumentType()) {
+							options.setLoadReplaceDocumentElement(null);
+						}
+						Method meth = factory.getType().getMethod("newValue", Object.class);
+						obj = meth.invoke(factory.get(typeClass), obj);
+					}
+				} catch (Exception e) {
+					throw new Fault("UNMARSHAL_ERROR", LOG, e, part.getTypeClass());
+				}
             }
 
             
