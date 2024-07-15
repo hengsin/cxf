@@ -137,8 +137,6 @@
                     <schemaDirectory>src/test/xsd</schemaDirectory>
                     <sourceGenerationDirectory>${project.build.directory}/generated/src/test/java</sourceGenerationDirectory>
                     <classGenerationDirectory>${project.build.directory}/generated/src/test/resources</classGenerationDirectory>
-                    <!--noJavac>true</noJavac-->
-                    <javaSource>1.7</javaSource>
                 </configuration>
             </plugin>
             <plugin>
